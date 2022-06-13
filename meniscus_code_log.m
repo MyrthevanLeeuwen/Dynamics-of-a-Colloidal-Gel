@@ -1,6 +1,8 @@
-%% This code solves the Young-Laplace equation for a substance between two 
-% (long) walls and in a cylindrical cuvette using logarithmic spaced points in
-% the x list.
+%% This code approximates the solution to the differential equation which 
+% governs the shape of the meniscus, derived using the Young-Laplace equation, 
+% for a substance between two (long) walls and in a cylindrical cuvette using 
+% logarithmically spaced points in the x list which is an discretization 
+% of the x-axis.
 
 %% This part of the code defines the grid, mean and difference operator, 
 %  parameters and the boundary and initial conditions.
@@ -61,6 +63,7 @@ vl = val + (vb-val)*[1:N-1]'*dx;
 etal = zeros(N+1,1);
 Ul = [vl; etal];
 
+
 %% In this part of the code a Newton's stepping method is performed.
 
 % Newton's stepping method for cylindrical case:
@@ -73,7 +76,7 @@ for iter = 1:maxIter,
     % Compute Jacobian matrix: 
     Jc = [Mxmin -Dxc; 3*diag((Mx*etac).*sqrt(1 + (Mx*[vac;vc;vb]).^2).*(Mx*[vac;vc;vb]).*(Mx*xc))*Mxmin-c*(3*((Mx*[vac;vc;vb]).^2)+1).*Mxmin-c*Dxcmin.*(Mx*xc) diag(((1 + (Mx*[vac;vc;vb]).^2).^1.5).*(Mx*xc))*Mx];
     rc = [r1c;r2c]; % vector r
-    % Calcule new U:
+    % Calculate new U:
     Uc = Uc - Jc\rc;
     vc = Uc(1:N-1); % update v list
     etac = Uc(N:end); % update eta list
@@ -93,7 +96,7 @@ for iter = 1:maxIter,
     % Compute Jacobian matrix: 
     Jl = [Mxmin -Dx; 3*diag((Mx*etal).*sqrt(1 + (Mx*[val;vl;vb]).^2).*(Mx*[val;vl;vb]))*Mxmin-c*Dxmin diag((1 + (Mx*[val;vl;vb]).^2).^1.5)*Mx];
     rl = [r1l;r2l]; % vector r
-    % Calcule new U:
+    % Calculate new U:
     Ul = Ul - Jl\rl;
     vl = Ul(1:N-1); % update v list
     etal = Ul(N:end); % update eta list
@@ -104,6 +107,7 @@ end
 if iter>=maxIter,
     disp('no convergence');
 end
+
 
 %% Make plots and check validity of code.
 
@@ -116,7 +120,6 @@ plot(-xc,etac-etac(N+1),'b','linewidth',2);% mirror in y axis
 legend({'Channel','Cylindrical'})
 hold off
 set(gca,'fontsize',25);
-%title('subtitle')
 xlabel 'x';
 ylabel '\eta(x)'
 subplot(122);

@@ -4,8 +4,8 @@
 
 
 % Grid:
-Lx=1; % length of cuvette in x direction 
-Lz=4; % length of cuvette in z direction 
+Lx=1; %cm, length of cuvette in x direction 
+Lz=4; %cm, length of cuvette in z direction 
 Nx=2; % number of grid cells in x
 Nz=400; % number of grid cells in z
 dx=Lx/Nx; % size of x step
@@ -19,7 +19,7 @@ Tf=dt*Nt; % final time
 % Parameters:
 drho=80*10^(-6); % kg/cm^3, density difference  between the colloids and the suspending medium
 g=981; % cm/s^2, gravitational acceleration
-eta=0.000012; % kg/(cm s), viscosity of the suspending medium
+mu=0.000012; % kg/(cm s), viscosity of the suspending medium
 phim=86/100; % maximum volume fraction
 
                            
@@ -37,20 +37,23 @@ end
 
 % Density plot of inital condition:
 figure(4);
-video=VideoWriter('Video_different_phi.avi'); %Make video
-open(video);
+% (To make a video uncomment everything with %v behind it)
+%video=VideoWriter('Video_different_phi.avi'); %v
+%open(video); %v
 ax=gca;
-s=pcolor([[phi zeros(Nz,1)];zeros(1,Nx+1)]);% Plot the full matrix we need to add an extra column and row
+% To plot the full matrix we need to add an extra column and row:
+s=pcolor([[phi zeros(Nz,1)];zeros(1,Nx+1)]);
 set(s, 'EdgeColor', 'none'); %No grid
 set(gca, 'clim', [0 1]);
+set(gca,'FontSize',20)
 colormap([0 0 0;jet]);
-xlabel('x','FontSize',30);
-ylabel('z','FontSize',30);
+xlabel('x','FontSize',25);
+ylabel('z','FontSize',25);
 title(ax,'t=0','FontSize',20);
 q=colorbar;
-title(q,'\phi','FontSize',20)
-frame=getframe(gcf); %first frame of video
-writeVideo(video,frame);
+title(q,'\phi','FontSize',25)
+%frame=getframe(gcf); %v
+%writeVideo(video,frame);%v
 drawnow();
 
 
@@ -58,7 +61,7 @@ drawnow();
 %% In this part of the code p and phi are computed at each time step 
 % and plots are made.
 
-%Compute k:
+% Compute k:
 k=zeros(Nz,Nx);
 for iterz = 1:Nz
     for iterx=1:Nx
@@ -89,18 +92,19 @@ for t=1:Nt,
         for iterx=1:Nx
             if iterz<Nz
                 p_z=(p(iterz+1,iterx)-p(iterz,iterx))/dz;
-                dphiz(iterz,iterx)=(dt/(eta*dz))*(k(iterz,iterx))*(phi(iterz+1,iterx))*p_z;
+                dphiz(iterz,iterx)=(dt/(mu*dz))*(k(iterz,iterx))*(phi(iterz+1,iterx))*p_z;
             end 
             if iterx<Nx
                 p_x=(p(iterz,iterx+1)-p(iterz,iterx))/dx;
                 if p_x<0
-                    dphix(iterz,iterx)=(dt/(eta*dz))*(k(iterz,iterx))*(phi(iterz,iterx+1))*p_x;
+                    dphix(iterz,iterx)=(dt/(mu*dz))*(k(iterz,iterx))*(phi(iterz,iterx+1))*p_x;
                 else
-                    dphix(iterz,iterx)=(dt/(eta*dz))*(k(iterz,iterx+1))*(phi(iterz,iterx))*p_x;
+                    dphix(iterz,iterx)=(dt/(mu*dz))*(k(iterz,iterx+1))*(phi(iterz,iterx))*p_x;
                 end
             end
         end
     end
+    
     % New phi by updating per interface
     for iterz=1:Nz
         for iterx=1:Nx
@@ -114,6 +118,7 @@ for t=1:Nt,
             end
         end
     end
+    
     % Check if phi is to small or to big:
     to_small=phi<0;
     to_big=phi>phim;
@@ -121,13 +126,17 @@ for t=1:Nt,
     som1=0;
     for iterz=1:Nz
         for iterx=1:Nx
+            % If phi in one of the boxes becomes negative quit run
             if to_small(iterz,iterx)==1
                 som0=som0+1;
+                %close(video); %v
                 'error0'
                 return
             end
+            % If phi in one of the boxes becomes bigger than the maximum quit run
             if to_big(iterz,iterx)==1
                 som1=som1+1;
+                %close(video); %v
                 'error1'
                 return
             end
@@ -141,28 +150,30 @@ for t=1:Nt,
             k(iterz,iterx)=abs((phim-phi(iterz,iterx))^3);
         end
     end
-    %Denity plot video:
-    set(s,'CData',[[phi zeros(Nz,1)];zeros(1,Nx+1)]) 
-    title(ax,['t=' num2str(t*dt) ''],'FontSize',20)
-    drawnow();
-    frame=getframe(gcf);
-    writeVideo(video,frame);
+    
+    % Denity plot video:
+    %set(s,'CData',[[phi zeros(Nz,1)];zeros(1,Nx+1)]) %v
+    %title(ax,['t=' num2str(t*dt) ''],'FontSize',20) %v
+    %drawnow(); %v
+    %frame=getframe(gcf); %v
+    %writeVideo(video,frame); %v
 end
-close(video);
+%close(video); %v
 
-%Density plot at the final time:
-% figure(6);
-% ax=gca;
-% s=pcolor([[phi zeros(Nz,1)];zeros(1,Nx+1)]);% Top plot the full matrix we need to add an extra column and row
-% set(s, 'EdgeColor', 'none'); % No grid
-% set(gca, 'clim', [0 1]); % Set collormap boundaries at phi=0 and phi=1
-% colormap([0 0 0; jet]);
-% xlabel('x','FontSize',30);
-% ylabel('z','FontSize',30);
-% title(ax,['t=' num2str(Tf) ''],'FontSize',20)
-% q=colorbar;
-% title(q,'\phi','FontSize',20)
-
+% Density plot at the final time:
+figure(6);
+ax=gca;
+% To plot the full matrix we need to add an extra column and row:
+s=pcolor([[phi zeros(Nz,1)];zeros(1,Nx+1)]);
+set(s, 'EdgeColor', 'none'); % No grid
+set(gca, 'clim', [0 1]); % Set collormap boundaries at phi=0 and phi=1
+set(gca,'FontSize',20)
+colormap([0 0 0; jet]);
+xlabel('x','FontSize',25);
+ylabel('z','FontSize',25);
+title(ax,['t=' num2str(Tf) ''],'FontSize',20)
+q=colorbar;
+title(q,'\phi','FontSize',25)
 
 
 

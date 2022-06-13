@@ -1,8 +1,9 @@
-%% This code solves the Young-Laplace equation for a substance between two 
-% (long) walls and in a cylindrical cuvette using evenly spaced points in
-% the x list.
+%% This code approximates the solution to the differential equation which 
+% governs the shape of the meniscus, derived using the Young-Laplace equation, 
+% for a substance between two (long) walls and in a cylindrical cuvette using 
+% evenly spaced points in the x list which is an discretization of the x-axis.
 
-%% This part of the code defines the grid, mean and difference operator, 
+%% This part of the code defines the grid, mean and difference operators, 
 %  parameters and the boundary and initial conditions.
 
 % Grid:
@@ -67,7 +68,7 @@ for iterc = 1:maxIter,
     % Compute Jacobian matrix: 
     Jc = [Mxmin -Dxc; 3*diag((Mx*etac).*sqrt(1 + (Mx*[vac;vc;vb]).^2).*(Mx*[vac;vc;vb]).*(Mx*xc))*Mxmin-c*(3*((Mx*[vac;vc;vb]).^2)+1).*Mxmin-c*Dxcmin.*(Mx*xc) diag(((1 + (Mx*[vac;vc;vb]).^2).^1.5).*(Mx*xc))*Mx];
     rc = [r1c;r2c]; % vector r
-    % Calcule new U:
+    % Calculate new U:
     Uc = Uc - Jc\rc;
     vc = Uc(1:N-1); % update v list
     etac = Uc(N:end); % update eta list
@@ -80,7 +81,7 @@ if iterc>=maxIter,
 end
 
 
-%Plot phi and v against x at every iteration:
+% Plot phi and v against x at every iteration:
 linecolors=jet(6);
 figure(4);
 subplot(121);
@@ -98,12 +99,12 @@ for iterl = 1:maxIter,
     % Compute Jacobian matrix: 
     Jl = [Mxmin -Dx; 3*diag((Mx*etal).*sqrt(1 + (Mx*[val;vl;vb]).^2).*(Mx*[val;vl;vb]))*Mxmin-c*Dxmin diag((1 + (Mx*[val;vl;vb]).^2).^1.5)*Mx];
     rl = [r1l;r2l]; % vector r
-    % Calcule new U:
+    % Calculate new U:
     Ul = Ul - Jl\rl; 
     vl = Ul(1:N-1); % update v list
     etal = Ul(N:end); % update eta list
     
-    %Plot results at every iteration:
+    % Plot results at every iteration using different lines:
     if iterl==1
         subplot(121);
         plot(xl,etal,'linewidth',2,'color',linecolors(iterl+1,:),'LineStyle','--');
@@ -152,7 +153,7 @@ if iterl>=maxIter,
     disp('no convergence');
 end
 
-%Plot of phi and v against x over the iterations layout:
+% Plot of phi and v against x over the iterations layout:
 hold off
 subplot(121);
 set(gca,'fontsize',25);
@@ -208,7 +209,7 @@ found_theta_l=(atan((abs(xl(N)-xl(N+1)))/(abs(etal(N)-etal(N+1)))))/pi;
 
 
 %% Create 3D plots corresponding to the final result:
-%Long case:
+% Long case:
 figure(2)
 surf(xl,xl,repmat(etal'-etal(1),[N+1,1]), 'EdgeColor','none');
 colormap winter;
@@ -218,7 +219,7 @@ xlabel 'x';
 ylabel 'y';
 zlabel '\eta(x)';
 
-%Cylindrical case
+% Cylindrical case:
 figure(3)
 r = xc';
 z = etac'-etac(N+1);
