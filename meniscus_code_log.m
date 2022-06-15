@@ -46,7 +46,7 @@ rho = 1060; % kg/m^3, density
 g = 9.81; % m/s, gravitational acceleration
 gamma = 55.89*10^(-3); % kg/s^2, surface tension
 c = (gamma/rho/g)*1e4; % size in cm
-lc=(c)^1/2; % capillary length
+lc=(c)^(1/2); % capillary length
 theta = pi/3; % contact angle
 
 % Boundary conditions:
@@ -55,11 +55,19 @@ val=-cot(theta); % for long walls case
 vb = cot(theta);
 
 % Initial guesses for cylindrical case:
-vc = vac + (vb-vac)*[1:N-1]'*dx;
+vc=[1:N-1]';
+for iter = 1:N-1,
+    dxc=xc(iter+1)-xc(1);
+    vc(iter) = vac +(vb-vac)*dxc/xc(N+1);
+end
 etac = zeros(N+1,1);
 Uc = [vc; etac];
 % Initial guesses for long walls case:
-vl = val + (vb-val)*[1:N-1]'*dx;
+vl=[1:N-1]';
+for iter = 1:N-1,
+    dxl=abs(xl(iter+1)-xl(1));
+    vl(iter) = val +(vb-val)*dxl/(xl(N+1)-xl(1));
+end
 etal = zeros(N+1,1);
 Ul = [vl; etal];
 
@@ -112,6 +120,7 @@ end
 %% Make plots and check validity of code.
 
 % Plot results:
+figure(1);
 subplot(121);
 plot(xl,etal-etal(1),'r','linewidth',2);
 hold on
